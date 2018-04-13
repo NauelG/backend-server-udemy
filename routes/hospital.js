@@ -10,20 +10,32 @@ var Hospital = require('../models/hospital');
 // ==================================
 app.get('/', (req, res, next) => {
 
-    Hospital.find({}, 'nombre img').exec((err, hospitales) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
 
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                mensaje: 'Error cargando hospitales',
-                errors: err
+    Hospital.find({})
+        .skip(desde)
+        .limit(5)
+        .populate('usuario', 'nombre email')
+        .exec((err, hospitales) => {
+
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error cargando hospitales',
+                    errors: err
+                });
+            }
+
+            Hospital.count({}, (err, conteo) => {
+                res.status(200).json({
+                    ok: true,
+                    hospitales: hospitales,
+                    total: conteo
+                });
+
             });
-        }
-        res.status(200).json({
-            ok: true,
-            hospitales: hospitales
         });
-    });
 
 });
 
